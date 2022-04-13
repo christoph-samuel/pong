@@ -5,87 +5,59 @@
     <style>
         body {
             margin: 0;
-            padding-bottom: 3rem;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            overflow: hidden;
         }
 
-        #form {
-            background: rgba(0, 0, 0, 0.15);
-            padding: 0.25rem;
+        #playground {
+            width: 100vw;
+            height: 100vh;
+            background-color: black;
+        }
+
+        #leftBlock, #rightBlock {
             position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            display: flex;
-            height: 3rem;
-            box-sizing: border-box;
-            backdrop-filter: blur(10px);
-        }
-
-        #input {
-            border: none;
-            padding: 0 1rem;
-            flex-grow: 1;
-            border-radius: 2rem;
-            margin: 0.25rem;
-        }
-
-        #input:focus {
-            outline: none;
-        }
-
-        #form > button {
-            background: #333;
-            border: none;
-            padding: 0 1rem;
-            margin: 0.25rem;
-            border-radius: 3px;
-            outline: none;
-            color: #fff;
-        }
-
-        #messages {
-            list-style-type: none;
-            margin: 0;
-            padding: 0;
-        }
-
-        #messages > li {
-            padding: 0.5rem 1rem;
-        }
-
-        #messages > li:nth-child(odd) {
-            background: #efefef;
+            background-color: #eee;
         }
     </style>
 </head>
 <body>
-<ul id="messages"></ul>
-<form id="form" action="">
-    <input id="input" autocomplete="off"/>
-    <button>Send</button>
-</form>
+<div id="playground">
+    <div id="leftBlock" style="height: 100px;width: 20px;top: 290px;left: 5px;"></div>
+    <div id="rightBlock" style="height: 100px;width: 20px;top: 120px;right: 5px;"></div>
+</div>
 <script src="/socket.io/socket.io.js"></script>
 <script>
     var socket = io();
 
-    var messages = document.getElementById('messages');
-    var form = document.getElementById('form');
-    var input = document.getElementById('input');
 
-    form.addEventListener('submit', function (e) {
-        e.preventDefault();
-        if (input.value) {
-            socket.emit('chat message', input.value);
-            input.value = '';
+    document.addEventListener('keydown', function (event) {
+        const key = event.key;
+        switch (key) {
+            case "ArrowUp":
+                socket.emit('arrow pressed', -10);
+                break
+            case "ArrowDown":
+                socket.emit('arrow pressed', +10);
+                break
+            default:
+                break
         }
-    });
+    })
 
-    socket.on('chat message', function (msg) {
-        var item = document.createElement('li');
-        item.textContent = msg;
-        messages.appendChild(item);
-        window.scrollTo(0, document.body.scrollHeight);
+    socket.on('arrow pressed', function (msg) {
+        let leftBlock = document.getElementById("leftBlock")
+        if (typeof msg === "number") {
+            let number = parseInt(leftBlock.style.top.replace(/(\d+)\w+/i, "$1"))
+            let unit = leftBlock.style.top.replace(/\d+(\w+)/i, "$1")
+            let availableHeight = window.innerHeight - parseInt(leftBlock.style.height.replace(/(\d+)\w+/i, "$1"))
+            let numberRounded = Math.round(number/Math.pow(10, 1)) * Math.pow(10, 1)
+            let availableHeightRounded = Math.round(availableHeight/Math.pow(10, 1)) * Math.pow(10, 1)
+
+            if (number === 0 && msg > 0 || numberRounded === availableHeightRounded && msg < 0 || number > 0 && numberRounded < availableHeightRounded) {
+                leftBlock.style.top = number + msg + unit
+            }
+        }
     });
 </script>
 </body>
