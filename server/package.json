@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node index.js"
   },
-  "author": "Damien Arrachequesne <damien.arrachequesne@gmail.com>",
+  "author": "Team ARSR",
   "license": "MIT",
   "dependencies": {
     "socket.io": "^3.1.1"
