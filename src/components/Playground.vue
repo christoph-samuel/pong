@@ -33,7 +33,7 @@ export default {
       gameStarted: false,
       scoreLeft: 0,
       scoreRight: 0,
-      speed: 50,
+      speed: 100,
       user: "",
     }
   },
@@ -67,6 +67,11 @@ export default {
 
     socket.on("game started", ({start, moveVertical, moveHorizontal}) => {
       newThis.gameStarted = start
+      for (let i = 0; i < newThis.users.length; i++) {
+        if (newThis.users[i].self) {
+          newThis.user = newThis.users[i].username
+        }
+      }
       newThis.ballMovement(moveVertical, moveHorizontal)
     });
 
@@ -81,11 +86,6 @@ export default {
 
   methods: {
     startGame() {
-      for (let i = 0; i < this.users.length; i++) {
-        if (this.users[i].self) {
-          this.user = this.users[i].username
-        }
-      }
       socket.emit("game started", {
         start: true
       });
@@ -226,7 +226,7 @@ export default {
   left: 50vw;
   transform: translate(-50%, -50%);
   color: rgba(255,255,255,0.1);
-  font-size: 200px;
+  font-size: 150px;
   font-weight: bolder;
   cursor: default;
 }
