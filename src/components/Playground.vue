@@ -4,7 +4,7 @@
     <div id="ball" ref="ball" style="height: 2vw;width: 2vw;top: 25vh;left: 50vw;transform: translate(-50%,-50%)"></div>
     <div id="rightBlock" ref="rightBlock" style="height: 10vh;width: 1vw;top: 40vh;right:0;"></div>
     <div v-if="!gameStarted" id="startGame" ref="startGame" @click="startGame">START</div>
-    <div id="user">{{user}}</div>
+    <div id="user">{{ user }}</div>
     <scoreboard
         :score-left="scoreLeft"
         :score-right="scoreRight"
@@ -120,6 +120,7 @@ export default {
 
     ballMovement(moveVertical, moveHorizontal) {
       let newThis = this;
+      let block = null;
       this.$refs.ball.style.transform = "none"
 
       this.ballInterval = setInterval(() => {
@@ -149,22 +150,25 @@ export default {
           moveHorizontal *= -1
         } else if (left === 0 && moveHorizontal < 0) {
           newThis.gameStarted = false
-          socket.emit("scored", {
-            block: "right"
-          });
+          block = "right"
           newThis.resetBall()
         }
         // rechte Kante
         if (left >= rightBlockBorder && topBall >= topRightBlock && bottomBall <= bottomRightBlock) {
-          console.log(left)
-          console.log(rightBlockBorder)
           moveHorizontal *= -1
         } else if (left === availableWidth && moveHorizontal > 0) {
           newThis.gameStarted = false
-          socket.emit("scored", {
-            block: "left"
-          });
+          block = "left"
           newThis.resetBall()
+        }
+
+        for (let i = 0; i < this.users.length; i++) {
+          if (block && this.users[i].self && this.users[i].left) {
+            socket.emit("scored", {
+              block: block
+            });
+            block = null;
+          }
         }
 
         if (newThis.gameStarted) {
@@ -225,7 +229,7 @@ export default {
   top: 50vh;
   left: 50vw;
   transform: translate(-50%, -50%);
-  color: rgba(255,255,255,0.1);
+  color: rgba(255, 255, 255, 0.1);
   font-size: 150px;
   font-weight: bolder;
   cursor: default;
