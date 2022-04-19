@@ -232,6 +232,8 @@ export default {
   color: rgba(255, 255, 255, 0.1);
   font-size: 150px;
   font-weight: bolder;
+  text-align: center;
+  word-break: break-all;
   cursor: default;
 }
 
@@ -245,5 +247,17 @@ export default {
   border-radius: 20px;
   display: flex;
   align-items: center;
+}
+
+@media screen and (max-width: 768px){
+  #user {
+    font-size: 100px;
+  }
+}
+
+@media screen and (max-width: 576px){
+  #user {
+    font-size: 75px;
+  }
 }
 </style>
