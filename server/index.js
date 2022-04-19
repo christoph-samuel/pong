@@ -2,6 +2,7 @@ const httpServer = require("http").createServer();
 const io = require("socket.io")(httpServer, {
   cors: {
     origin: "http://localhost:8080",
+    // origin: "http://10.21.103.234:8080",
   },
 });
 
@@ -17,11 +18,15 @@ io.use((socket, next) => {
 io.on("connection", (socket) => {
   // fetch existing users
   const users = [];
+  let i = 0;
+
   for (let [id, socket] of io.of("/").sockets) {
     users.push({
       userID: id,
       username: socket.username,
+      left: i === 0,
     });
+    i++
   }
   socket.emit("users", users);
 
@@ -31,11 +36,27 @@ io.on("connection", (socket) => {
     username: socket.username,
   });
 
-  // forward the private message to the right recipient
-  socket.on("private message", ({ content, to }) => {
-    socket.to(to).emit("private message", {
-      content,
-      from: socket.id,
+  // forward the pressed key to the opponent
+  socket.on("key pressed", ({ number, left }) => {
+    io.emit("key pressed", {
+      number: number,
+      left: left,
+    });
+  });
+
+  // inform the players that the game has started
+  socket.on("game started", (start) => {
+    io.emit("game started", {
+      start,
+      moveVertical: Math.round(Math.random()) === 0 ? -1 : 1,
+      moveHorizontal: Math.round(Math.random()) === 0 ? -1 : 1,
+    });
+  });
+
+  // forward the change of the score to the players
+  socket.on("scored", ({block}) => {
+    io.emit("scored", {
+      block
     });
   });
 
@@ -48,5 +69,6 @@ io.on("connection", (socket) => {
 const PORT = process.env.PORT || 3000;
 
 httpServer.listen(PORT, () =>
-  console.log(`server listening at http://localhost:${PORT}`)
+  // console.log(`server listening at http://localhost:${PORT}`)
+  console.log(`server listening at http://10.21.103.234:${PORT}`)
 );

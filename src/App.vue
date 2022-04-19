@@ -4,19 +4,22 @@
       v-if="!usernameAlreadySelected"
       @input="onUsernameSelection"
     />
-    <chat v-else />
+<!--    <chat v-else />-->
+    <pong v-else />
   </div>
 </template>
 
 <script>
 import SelectUsername from "./components/SelectUsername";
-import Chat from "./components/Chat";
+// import Chat from "./components/Chat";
+import Pong from "./components/Pong";
 import socket from "./socket";
 
 export default {
   name: "App",
   components: {
-    Chat,
+    Pong,
+    // Chat,
     SelectUsername,
   },
   data() {

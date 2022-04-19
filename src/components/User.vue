@@ -1,14 +1,13 @@
 <template>
-  <div class="user" @click="onClick" :class="{ selected: selected }">
+  <div class="user">
     <div class="description">
       <div class="name">
-        {{ user.username }} {{ user.self ? " (yourself)" : "" }}
+        {{ user.username }} {{ user.left ? " (left)" : "(right)" }}
       </div>
       <div class="status">
         <status-icon :connected="user.connected" />{{ status }}
       </div>
     </div>
-    <div v-if="user.hasNewMessages" class="new-messages">!</div>
   </div>
 </template>
 
@@ -19,13 +18,8 @@ export default {
   components: { StatusIcon },
   props: {
     user: Object,
-    selected: Boolean,
   },
-  methods: {
-    onClick() {
-      this.$emit("select");
-    },
-  },
+
   computed: {
     status() {
       return this.user.connected ? "online" : "offline";
@@ -35,12 +29,11 @@ export default {
 </script>
 
 <style scoped>
-.selected {
-  background-color: #1164a3;
-}
-
 .user {
   padding: 10px;
+  margin: 10px;
+  background: rgba(255,255,255,0.9);
+  border-radius: 10px;
 }
 
 .description {
@@ -49,15 +42,5 @@ export default {
 
 .status {
   color: #92959e;
-}
-
-.new-messages {
-  color: white;
-  background-color: red;
-  width: 20px;
-  border-radius: 5px;
-  text-align: center;
-  float: right;
-  margin-top: 10px;
 }
 </style>
