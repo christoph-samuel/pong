@@ -65,14 +65,26 @@ export default {
       }
     });
 
-    socket.on("game started", ({start, moveVertical, moveHorizontal}) => {
+    socket.on("game started", ({start}) => {
       newThis.gameStarted = start
       for (let i = 0; i < newThis.users.length; i++) {
         if (newThis.users[i].self) {
           newThis.user = newThis.users[i].username
         }
       }
-      newThis.ballMovement(moveVertical, moveHorizontal)
+    });
+
+    socket.on("move", ({topBall, leftBall}) => {
+      // let topBall = parseInt(newThis.$refs.ball.style.top.replace(/(\d+)\w+/i, "$1"))
+      // let bottomBall = topBall + widthHeightBall
+      // let topLeftBlock = parseInt(newThis.$refs.leftBlock.style.top.replace(/(\d+)\w+/i, "$1"))
+      // let bottomLeftBlock = topLeftBlock + parseInt(newThis.$refs.leftBlock.style.height.replace(/(\d+)\w+/i, "$1"))
+      // let topRightBlock = parseInt(newThis.$refs.rightBlock.style.top.replace(/(\d+)\w+/i, "$1"))
+      // let bottomRightBlock = topRightBlock + parseInt(newThis.$refs.leftBlock.style.height.replace(/(\d+)\w+/i, "$1"))
+      // let leftBall = parseInt(newThis.$refs.ball.style.left.replace(/(\d+)\w+/i, "$1"))
+      newThis.$refs.ball.style.transform = "none"
+      newThis.$refs.ball.style.top = topBall + "vh"
+      newThis.$refs.ball.style.left = leftBall + "vw"
     });
 
     socket.on("scored", ({block}) => {
@@ -86,8 +98,18 @@ export default {
 
   methods: {
     startGame() {
+      console.log("TopBall:", parseInt(this.$refs.ball.style.top.replace(/(\d+)\w+/i, "$1")))
+      console.log("LeftBall:", parseInt(this.$refs.ball.style.left.replace(/(\d+)\w+/i, "$1")))
       socket.emit("game started", {
-        start: true
+        start: true,
+        speed: this.speed,
+        topBall: parseInt(this.$refs.ball.style.top.replace(/(\d+)\w+/i, "$1")),
+        leftBall: parseInt(this.$refs.ball.style.left.replace(/(\d+)\w+/i, "$1")),
+        widthHeightBall: 2,
+        availableHeight: 98,
+        availableWidth: 98,
+        leftBlockBorder: 1,
+        rightBlockBorder: 97
       });
     },
 
@@ -124,18 +146,18 @@ export default {
       this.$refs.ball.style.transform = "none"
 
       this.ballInterval = setInterval(() => {
-        let widthBall = parseInt(newThis.$refs.ball.style.width.replace(/(\d+)\w+/i, "$1"))
+        let widthHeightBall = 2
         let topBall = parseInt(newThis.$refs.ball.style.top.replace(/(\d+)\w+/i, "$1"))
-        let bottomBall = parseInt(newThis.$refs.ball.style.top.replace(/(\d+)\w+/i, "$1")) + parseInt(newThis.$refs.ball.style.height.replace(/(\d+)\w+/i, "$1"))
+        let bottomBall = topBall + widthHeightBall
         let topLeftBlock = parseInt(newThis.$refs.leftBlock.style.top.replace(/(\d+)\w+/i, "$1"))
         let bottomLeftBlock = topLeftBlock + parseInt(newThis.$refs.leftBlock.style.height.replace(/(\d+)\w+/i, "$1"))
         let topRightBlock = parseInt(newThis.$refs.rightBlock.style.top.replace(/(\d+)\w+/i, "$1"))
         let bottomRightBlock = topRightBlock + parseInt(newThis.$refs.leftBlock.style.height.replace(/(\d+)\w+/i, "$1"))
         let left = parseInt(newThis.$refs.ball.style.left.replace(/(\d+)\w+/i, "$1"))
-        let availableHeight = 100 - parseInt(newThis.$refs.ball.style.height.replace(/(\d+)\w+/i, "$1"))
-        let availableWidth = 100 - widthBall
-        let leftBlockBorder = parseInt(newThis.$refs.leftBlock.style.width.replace(/(\d+)\w+/i, "$1"))
-        let rightBlockBorder = 100 - parseInt(newThis.$refs.rightBlock.style.width.replace(/(\d+)\w+/i, "$1")) - widthBall
+        let availableHeight = 98
+        let availableWidth = 98
+        let leftBlockBorder = 1
+        let rightBlockBorder = 97
 
         // obere Kante
         if (topBall === 0 && moveVertical < 0) {
