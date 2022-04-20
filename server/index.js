@@ -39,10 +39,20 @@ io.on("connection", (socket) => {
     });
 
     // forward the pressed key to the opponent
-    socket.on("key pressed", ({number, left}) => {
+    socket.on("key pressed", ({number, left, topLeftBlock, topRightBlock, heightLeftBlock, heightRightBlock}) => {
+        if (left) {
+            if (topLeftBlock === 0 && number > 0 || topLeftBlock === 100-heightLeftBlock && number < 0 || topLeftBlock > 0 && topLeftBlock < 100-heightLeftBlock) {
+                topLeftBlock += number
+            }
+        } else {
+            if (topRightBlock === 0 && number > 0 || topRightBlock === 100-heightRightBlock && number < 0 || topRightBlock > 0 && topRightBlock < 100-heightRightBlock) {
+                topRightBlock += number
+            }
+        }
+
         io.emit("key pressed", {
-            number: number,
-            left: left,
+            topLeftBlock,
+            topRightBlock,
         });
     });
 
@@ -83,7 +93,7 @@ io.on("connection", (socket) => {
             bottomBall,
             block
         })
-        socket.emit("MOVE", hund)
+        socket.emit("MOVE BALL", hund)
 
         ballInterval = setInterval(() => {
             // obere Kante

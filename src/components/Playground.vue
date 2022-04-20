@@ -45,24 +45,9 @@ export default {
       newThis.onKeyPressed(event.key);
     });
 
-    socket.on("key pressed", ({number, left}) => {
-      if (left) {
-        let value = parseInt(this.$refs.leftBlock.style.top.replace(/(\d+)\w+/i, "$1"))
-        let unit = this.$refs.leftBlock.style.top.replace(/\d+(\w+)/i, "$1")
-        let availableHeight = 100 - parseInt(this.$refs.leftBlock.style.height.replace(/(\d+)\w+/i, "$1"))
-
-        if (value === 0 && number > 0 || value === availableHeight && number < 0 || value > 0 && value < availableHeight) {
-          this.$refs.leftBlock.style.top = value + number + unit
-        }
-      } else {
-        let value = parseInt(this.$refs.rightBlock.style.top.replace(/(\d+)\w+/i, "$1"))
-        let unit = this.$refs.rightBlock.style.top.replace(/\d+(\w+)/i, "$1")
-        let availableHeight = 100 - parseInt(this.$refs.rightBlock.style.height.replace(/(\d+)\w+/i, "$1"))
-
-        if (value === 0 && number > 0 || value === availableHeight && number < 0 || value > 0 && value < availableHeight) {
-          this.$refs.rightBlock.style.top = value + number + unit
-        }
-      }
+    socket.on("key pressed", ({topLeftBlock, topRightBlock}) => {
+      this.$refs.leftBlock.style.top = topLeftBlock + "vh"
+      this.$refs.rightBlock.style.top = topRightBlock + "vh"
     });
 
     socket.on("game started", ({start}) => {
@@ -98,8 +83,6 @@ export default {
 
   methods: {
     startGame() {
-      console.log("TopBall:", parseInt(this.$refs.ball.style.top.replace(/(\d+)\w+/i, "$1")))
-      console.log("LeftBall:", parseInt(this.$refs.ball.style.left.replace(/(\d+)\w+/i, "$1")))
       socket.emit("game started", {
         start: true,
         speed: this.speed,
@@ -137,6 +120,10 @@ export default {
       socket.emit("key pressed", {
         number,
         left: user.left,
+        topLeftBlock: parseInt(this.$refs.leftBlock.style.top.replace(/(\d+)\w+/i, "$1")),
+        topRightBlock: parseInt(this.$refs.rightBlock.style.top.replace(/(\d+)\w+/i, "$1")),
+        heightLeftBlock: parseInt(this.$refs.leftBlock.style.height.replace(/(\d+)\w+/i, "$1")),
+        heightRightBlock: parseInt(this.$refs.rightBlock.style.height.replace(/(\d+)\w+/i, "$1"))
       });
     },
 
