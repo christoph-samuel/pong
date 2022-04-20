@@ -29,11 +29,10 @@ export default {
 
   data: () => {
     return {
-      ballInterval: null,
       gameStarted: false,
       scoreLeft: 0,
       scoreRight: 0,
-      speed: 100,
+      speed: 50,
       user: "",
     }
   },
@@ -59,17 +58,22 @@ export default {
       }
     });
 
-    socket.on("move", ({topBall, leftBall}) => {
-      // let topBall = parseInt(newThis.$refs.ball.style.top.replace(/(\d+)\w+/i, "$1"))
-      // let bottomBall = topBall + widthHeightBall
-      // let topLeftBlock = parseInt(newThis.$refs.leftBlock.style.top.replace(/(\d+)\w+/i, "$1"))
-      // let bottomLeftBlock = topLeftBlock + parseInt(newThis.$refs.leftBlock.style.height.replace(/(\d+)\w+/i, "$1"))
-      // let topRightBlock = parseInt(newThis.$refs.rightBlock.style.top.replace(/(\d+)\w+/i, "$1"))
-      // let bottomRightBlock = topRightBlock + parseInt(newThis.$refs.leftBlock.style.height.replace(/(\d+)\w+/i, "$1"))
-      // let leftBall = parseInt(newThis.$refs.ball.style.left.replace(/(\d+)\w+/i, "$1"))
+    socket.on("move", ({topBall, leftBall, block}) => {
       newThis.$refs.ball.style.transform = "none"
       newThis.$refs.ball.style.top = topBall + "vh"
       newThis.$refs.ball.style.left = leftBall + "vw"
+
+      for (let i = 0; i < this.users.length; i++) {
+        if (block) {
+          if (this.users[i].self && this.users[i].left) {
+            socket.emit("scored", {
+              block: block
+            });
+          }
+          this.gameStarted = false
+          this.$refs.ball.style.transform = "translate(-50%, -50%)"
+        }
+      }
     });
 
     socket.on("scored", ({block}) => {
@@ -126,78 +130,7 @@ export default {
         heightRightBlock: parseInt(this.$refs.rightBlock.style.height.replace(/(\d+)\w+/i, "$1"))
       });
     },
-
-    ballMovement(moveVertical, moveHorizontal) {
-      let newThis = this;
-      let block = null;
-      this.$refs.ball.style.transform = "none"
-
-      this.ballInterval = setInterval(() => {
-        let widthHeightBall = 2
-        let topBall = parseInt(newThis.$refs.ball.style.top.replace(/(\d+)\w+/i, "$1"))
-        let bottomBall = topBall + widthHeightBall
-        let topLeftBlock = parseInt(newThis.$refs.leftBlock.style.top.replace(/(\d+)\w+/i, "$1"))
-        let bottomLeftBlock = topLeftBlock + parseInt(newThis.$refs.leftBlock.style.height.replace(/(\d+)\w+/i, "$1"))
-        let topRightBlock = parseInt(newThis.$refs.rightBlock.style.top.replace(/(\d+)\w+/i, "$1"))
-        let bottomRightBlock = topRightBlock + parseInt(newThis.$refs.leftBlock.style.height.replace(/(\d+)\w+/i, "$1"))
-        let left = parseInt(newThis.$refs.ball.style.left.replace(/(\d+)\w+/i, "$1"))
-        let availableHeight = 98
-        let availableWidth = 98
-        let leftBlockBorder = 1
-        let rightBlockBorder = 97
-
-        // obere Kante
-        if (topBall === 0 && moveVertical < 0) {
-          moveVertical *= -1
-        }
-        // untere Kante
-        if (topBall === availableHeight && moveVertical > 0) {
-          moveVertical *= -1
-        }
-        // linke Kante
-        if (left <= leftBlockBorder && topBall >= topLeftBlock && bottomBall <= bottomLeftBlock) {
-          moveHorizontal *= -1
-        } else if (left === 0 && moveHorizontal < 0) {
-          newThis.gameStarted = false
-          block = "right"
-          newThis.resetBall()
-        }
-        // rechte Kante
-        if (left >= rightBlockBorder && topBall >= topRightBlock && bottomBall <= bottomRightBlock) {
-          moveHorizontal *= -1
-        } else if (left === availableWidth && moveHorizontal > 0) {
-          newThis.gameStarted = false
-          block = "left"
-          newThis.resetBall()
-        }
-
-        for (let i = 0; i < this.users.length; i++) {
-          if (block && this.users[i].self && this.users[i].left) {
-            socket.emit("scored", {
-              block: block
-            });
-            block = null;
-          }
-        }
-
-        if (newThis.gameStarted) {
-          this.$refs.ball.style.top = topBall + moveVertical + "vh"
-          this.$refs.ball.style.left = left + moveHorizontal + "vw"
-        }
-      }, this.speed);
-    },
-
-    resetBall() {
-      clearInterval(this.ballInterval)
-      this.$refs.ball.style.top = 25 + "vh"
-      this.$refs.ball.style.left = 50 + "vw"
-      this.$refs.ball.style.transform = "translate(-50%, -50%)"
-    }
   },
-
-  destroyed() {
-    clearInterval(this.ballInterval)
-  }
 }
 </script>
 
@@ -258,13 +191,13 @@ export default {
   align-items: center;
 }
 
-@media screen and (max-width: 768px){
+@media screen and (max-width: 768px) {
   #user {
     font-size: 100px;
   }
 }
 
-@media screen and (max-width: 576px){
+@media screen and (max-width: 576px) {
   #user {
     font-size: 75px;
   }

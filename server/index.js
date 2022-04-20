@@ -1,8 +1,8 @@
 const httpServer = require("http").createServer();
 const io = require("socket.io")(httpServer, {
     cors: {
-        origin: "http://localhost:8080",
-        // origin: "http://10.21.103.234:8080",
+        // origin: "http://localhost:8080",
+        origin: "http://10.21.103.234:8080",
     },
 });
 
@@ -21,6 +21,10 @@ io.on("connection", (socket) => {
     let i = 0;
 
     let ballInterval = null
+    let topLeftBlock = 0
+    let topRightBlock = 0
+    let heightLeftBlock = 0
+    let heightRightBlock = 0
 
     for (let [id, socket] of io.of("/").sockets) {
         users.push({
@@ -50,6 +54,11 @@ io.on("connection", (socket) => {
             }
         }
 
+        this.topLeftBlock = topLeftBlock
+        this.topRightBlock = topRightBlock
+        this.heightLeftBlock = heightLeftBlock
+        this.heightRightBlock = heightRightBlock
+
         io.emit("key pressed", {
             topLeftBlock,
             topRightBlock,
@@ -75,25 +84,11 @@ io.on("connection", (socket) => {
         let moveVertical = Math.round(Math.random()) === 0 ? -1 : 1
         let moveHorizontal = Math.round(Math.random()) === 0 ? -1 : 1
         let bottomBall = topBall + widthHeightBall
+        let topBallOld = topBall
+        let leftBallOld = leftBall
         let block = null
-
-        const hund = []
-        hund.push({
-            start,
-            speed,
-            topBall,
-            leftBall,
-            widthHeightBall,
-            availableHeight,
-            availableWidth,
-            leftBlockBorder,
-            rightBlockBorder,
-            moveVertical,
-            moveHorizontal,
-            bottomBall,
-            block
-        })
-        socket.emit("MOVE BALL", hund)
+        let gameStarted = true
+        let newThis = this
 
         ballInterval = setInterval(() => {
             // obere Kante
@@ -104,47 +99,38 @@ io.on("connection", (socket) => {
             if (topBall === availableHeight && moveVertical > 0) {
                 moveVertical *= -1
             }
-            // FAKE CODE:
-            if (leftBall <= 0 && moveHorizontal < 0) {
-                moveHorizontal *= -1
-            }
-            if (leftBall >= availableWidth && moveHorizontal > 0) {
-                moveHorizontal *= -1
-            }
-
-            // ECHTER CODE:
             // linke Kante
-            // if (leftBall <= leftBlockBorder && topBall >= topLeftBlock && bottomBall <= bottomLeftBlock) {
-            //     moveHorizontal *= -1
-            // } else if (leftBall === 0 && moveHorizontal < 0) {
-            //     // this.gameStarted = false
-            //     block = "right"
-            //     // this.resetBall()
-            // }
-            // // rechte Kante
-            // if (leftBall >= rightBlockBorder && topBall >= topRightBlock && bottomBall <= bottomRightBlock) {
-            //     moveHorizontal *= -1
-            // } else if (leftBall === availableWidth && moveHorizontal > 0) {
-            //     // this.gameStarted = false
-            //     block = "left"
-            //     // this.resetBall()
-            // }
-            //
-            // for (let i = 0; i < this.users.length; i++) {
-            //     if (block && this.users[i].self && this.users[i].left) {
-            //         socket.emit("scored", {
-            //             block: block
-            //         });
-            //         block = null;
-            //     }
-            // }
+            if (leftBall <= leftBlockBorder && topBall >= newThis.topLeftBlock && bottomBall <= newThis.topLeftBlock+newThis.heightLeftBlock) {
+                moveHorizontal *= -1
+            } else if (leftBall === 0 && moveHorizontal < 0) {
+                gameStarted = false
+                block = "right"
+                topBall = topBallOld
+                leftBall = leftBallOld
+                socket.emit("Score:", block)
+                clearInterval(ballInterval)
+            }
+            // rechte Kante
+            if (leftBall >= rightBlockBorder && topBall >= newThis.topRightBlock && bottomBall <= newThis.topRightBlock+newThis.heightRightBlock) {
+                moveHorizontal *= -1
+            } else if (leftBall === availableWidth && moveHorizontal > 0) {
+                gameStarted = false
+                block = "left"
+                topBall = topBallOld
+                leftBall = leftBallOld
+                socket.emit("Score:", block)
+                clearInterval(ballInterval)
+            }
 
-            topBall += moveVertical
-            leftBall += moveHorizontal
+            if (gameStarted) {
+                topBall += moveVertical
+                leftBall += moveHorizontal
+            }
 
             io.emit("move", {
                 topBall: topBall,
-                leftBall: leftBall
+                leftBall: leftBall,
+                block
             })
         }, speed)
     });
